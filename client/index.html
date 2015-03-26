@@ -1,0 +1,892 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TestIt Homepage</title>
+ 
+  
+  <link href="css/bootstrap.min.css" rel="stylesheet"></link>
+  <link href="css/prettify.css" rel="stylesheet"></link>
+  
+  <link href="css/form-signin.css" rel="stylesheet"></link>
+
+  <script src="js/jquery-1.9.1.js" type='text/javascript'></script>
+  <script src="js/jquery-ui-1.10.3.custom.min.js" type='text/javascript'></script> 
+  <script src="js/jquery-1.11.2.min.js" type='text/javascript'></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/bootstrap.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.0/angular.min.js"></script>
+  <script src="https://rawgit.com/Ciul/angular-facebook/master/lib/angular-facebook.js"></script> 
+  <script src = "https://cdn.rawgit.com/nervgh/angular-file-upload/master/angular-file-upload.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/es5-shim/4.0.6/es5-shim.min.js"></script>
+  <script src="https://rawgit.com/adamalbrecht/ngModal/master/dist/ng-modal.min.js"></script>
+  <link href="https://rawgit.com/adamalbrecht/ngModal/master/dist/ng-modal.css" rel="stylesheet"></link>
+  <script src="https://rawgit.com/lorenzofox3/Smart-Table/master/dist/smart-table.min.js"></script>
+  <script>
+
+
+    var demoApp = angular.module('demoApp',['angularFileUpload','ngModal','smart-table','facebook']);
+    demoApp.config(function(FacebookProvider) {
+       // Set your appId through the setAppId method or
+       // use the shortcut in the initialize method directly.
+       FacebookProvider.init('1562010654040284');
+    })
+
+
+    function MainController ($scope, $http, $location, FileUploader, Facebook){
+      $scope.uploader = new FileUploader();
+      $scope.current_page = "profile";
+      $scope.contrib_problem = "the problem";
+      $scope.contrib_tests = [["","",""],["","",""],["","",""]];
+      $scope.contrib_challenges = [["","",""],["","",""],["","",""]];
+      $scope.drop_text = "Drop Code Folder/Files here";
+      $scope.incomplete = false;
+      $scope.incomplete_message= "";
+      $scope.success_m= false;
+      $scope.failure_m = false;
+      $scope.success_message= "";
+      $scope.challenges_m = false;
+      $scope.challenges_message = false;
+      $scope.contrib_final = false;
+
+      $scope.sorry_m = false;
+      $scope.problem_id = "";
+      var challenges = [];
+      $scope.tests_m = false;
+
+
+      $scope.test_data = [];
+      $scope.prbsub = "Describe your problem for your testers. It's best to include code snippets and written overviews of relevant libraries. Everything you write here will be show to testers, so focus on providing the most important information.\n\nYou're required to submit three test cases. Every TestIt user will have to solve these three cases before they can contribute to your problem's test suite.\n\nDivide your cases in two to three components and place the portions you want testers to see in the two leftmost boxes. Aside from this restriction, the way you use the text boxes won't affect your test cases.";
+      $scope.assert_10 = "5*2";
+      $scope.assert_11 = "==";
+      $scope.assert_12 = "9";
+      $scope.success_setup = "";
+      $scope.loggedIn = false;
+      $scope.uid = "";
+      $scope.user_data = [];
+      $scope.user_info = null;
+      var test_cases = [];
+      var test_text = "";
+
+      $scope.initialize = function(){
+        Facebook.getLoginStatus(function(response) {
+          if(response.status === 'connected') {
+            $scope.loggedIn = true;
+            console.log("logged in");
+             Facebook.api('/me', function(response) {
+              $scope.uid = response.id;
+              $scope.user_info = response;
+              console.log("user_id :" + $scope.uid);
+
+
+              var form_data = {};
+              form_data.mode = "login";
+              form_data.uid = $scope.uid;
+
+              console.log('sending post');
+              $http.post('', form_data).
+                  success(function(data, status, headers, config) {
+                    
+                    form_data.mode = "profile";
+                    $http.post('', form_data).
+                    success(function(data, status, headers, config) {
+                        console.log("data :" + JSON.stringify(data));
+
+                        $scope.user_data = [];
+                        for (var i=0; i<data[3].length;i++){
+                          $scope.user_data.push({id: (i+1), up: data[3][i],exp:data[4][i],sub:data[5][i]});
+                        } 
+                    }).
+                    error(function(data, status, headers, config) {
+                      // called asynchronously if an error occurs
+                      // or server returns response with an error status.
+                    });
+
+
+
+                  }).
+                  error(function(data, status, headers, config) {
+                    // called asynchronously if an error occurs
+                    // or server returns response with an error status.
+                  });
+
+            });
+          } else {
+            $scope.loggedIn = false;
+          }
+        });
+        console.log("log status :" + $scope.loggedIn)
+      };
+
+      $scope.setProfile = function(){
+        console.log("setting the profile");
+        var form_data = {};
+        form_data.mode = "profile";
+        form_data.uid = $scope.uid;
+
+        $http.post('', form_data).
+          success(function(data, status, headers, config) {
+              console.log("data :" + JSON.stringify(data));
+              $scope.user_data = [];
+              for (var i=0; i<data[3].length;i++){
+                $scope.user_data.push({id: (i+1), up: data[3][i],exp:data[4][i],sub:data[5][i]});
+              } 
+          }).
+          error(function(data, status, headers, config) {
+            // called asynchronously if an error occurs
+            // or server returns response with an error status.
+          });
+
+      };
+
+      $scope.setPage = function(page){
+        $scope.current_page = page;
+      };
+
+      $scope.validSubmission = function(){
+        test_cases = [$scope.assert_10, $scope.assert_11, $scope.assert_12, $scope.assert_20, $scope.assert_21, $scope.assert_22,$scope.assert_30, $scope.assert_31, $scope.assert_32];
+
+        for (var i=0; i< test_cases.length; i++){
+          if (test_cases[i]==null || test_cases[i].trim()==""){
+            return false;
+          }
+        }
+        
+        return ($scope.prbsub!=null) && ($scope.prbsub.trim()!="");
+      };
+
+      $scope.validChallenges = function(){
+
+        for (var i=0; i< $scope.contrib_challenges.length; i++){
+          if ($scope.contrib_challenges[i][2]==null || $scope.contrib_challenges[i][2].trim()=="") {
+            return false;
+          }
+        }
+
+        return true;
+      };
+
+      $scope.validUserTests = function(){
+        for (var i=0; i< $scope.contrib_tests.length; i++){
+          if ($scope.contrib_tests[i][0] == null || $scope.contrib_tests[i][1] == null || $scope.contrib_tests[i][2] == null){
+            return false;
+          }
+          if ($scope.contrib_tests[i][0].trim()=="" || $scope.contrib_tests[i][1].trim()=="" || $scope.contrib_tests[i][2].trim()==""){
+            return false;
+          }
+        }
+
+        return true;
+      };
+
+      $scope.uploadFiles = function(){
+        
+        if(!$scope.validSubmission()){
+          $scope.incomplete = true;
+          $scope.incomplete_message = "One or more required fields was not filled out.";
+          return null;
+        } else if ($scope.uploader.queue.length == 0){
+          $scope.incomplete = true;
+          $scope.incomplete_message = "No upload file detected.";
+          return null;
+        }
+        
+        for (var i = 0; i< $scope.uploader.queue.length; i++){
+          $scope.uploader.queue[i].upload();
+        } 
+
+        /*$scope.uploader.uploadAll();*/
+       /* $scope.uploader.clearQueue();*/
+        
+        var form_data = {};
+        form_data.mode = "submission";
+
+        form_data.tests = [];
+        form_data.tests.push({a10: $scope.assert_10, a11: $scope.assert_11, a12: $scope.assert_12});
+        form_data.tests.push({a20: $scope.assert_20, a21: $scope.assert_21, a22: $scope.assert_22});
+        form_data.tests.push({a30: $scope.assert_30, a31: $scope.assert_31, a32: $scope.assert_32});
+
+        form_data.ps = $scope.prbsub.trim();
+
+        console.log('sending post');
+
+        $http.post('', form_data).
+            success(function(data, status, headers, config) {
+              $scope.uploader.clearQueue();
+              console.log("\nupload\n");
+              console.log("data :" + data);
+              console.log("status: " + status);
+              console.log("headers: " + headers);
+              console.log("config: " + config);
+              if (data == "All tests passed!"){
+                $scope.success_m= true;
+
+                $scope.assert_10 = "";
+                $scope.assert_11 = "";
+                $scope.assert_12 = "";
+                $scope.assert_20 = "";
+                $scope.assert_21 ="";
+                $scope.assert_22 ="";
+                $scope.assert_30 = "";
+                $scope.assert_31 = "";
+                $scope.assert_32 = "";
+
+                $scope.prbsub = "";
+              } else {
+                $scope.failure_m = true;
+                $scope.success_message = data + "   ";
+              }
+            }).
+            error(function(data, status, headers, config) {
+              $scope.uploader.clearQueue();
+              console.log("oh noes");
+            });
+        return null;
+      };
+
+      $scope.checkChallenges = function(){
+
+        if(!$scope.validChallenges()){
+          $scope.incomplete = true;
+          $scope.incomplete_message = "One or more required fields was not filled out.";
+          return null;
+        } 
+
+        var form_data = {};
+        form_data.mode = "contributor_check";
+
+        form_data.tests = $scope.contrib_challenges;
+        console.log("\n");
+        console.log("data tests: " + form_data.tests);
+        form_data.problem_id = $scope.problem_id;
+        console.log("problem id: " + form_data.problem_id);
+        form_data.uid = $scope.used_id;
+
+        console.log('sending post');
+        $http.post('', form_data).
+            success(function(data, status, headers, config) {
+              // this callback will be called asynchronously
+              // when the response is available
+             console.log("data :" + data);
+              console.log("status: " + status);
+              console.log("headers: " + headers);
+              console.log("config: " + config);
+              if (data == "All tests passed!"){
+                $scope.challenges_m = true;
+                for (var i=0; i<$scope.contrib_challenges.length;i++){
+                  $scope.contrib_challenges[i][0] = "";
+                  $scope.contrib_challenges[i][1] = "";
+                  $scope.contrib_challenges[i][2] = "";
+                }
+
+              } else {
+                $scope.failure_m = true;
+                $scope.success_message = data + "   ";
+              }
+            }).
+            error(function(data, status, headers, config) {
+              // called asynchronously if an error occurs
+              // or server returns response with an error status.
+            });
+        return null;
+      };
+
+      $scope.submitContributorTests = function(){
+        
+        if($scope.validUserTests() == false){
+          $scope.incomplete = true;
+          $scope.incomplete_message = "One or more required fields was not filled out.";
+          return null;
+        }
+
+        var form_data = {};
+        form_data.mode = "contributor_tests";
+
+        console.log("\n\nContrib tests :" + $scope.contrib_tests);
+        form_data.tests = $scope.contrib_tests;
+        console.log("\ndata tests: " + form_data.tests);
+
+        form_data.setup = ($scope.success_setup == null) ? "" : $scope.success_setup.trim();
+        form_data.problem_id = $scope.problem_id;
+        form_data.uid = $scope.uid;
+
+        $http.post('', form_data).
+            success(function(data, status, headers, config) {
+              
+              $scope.test_data = [];
+              console.log("\nuser's test data: " + data + "\n");
+              for (var i = 0; i<data.length; i++){
+                $scope.test_data.push({func: data[i][0], result: data[i][1]});
+              }
+              console.log($scope.test_data);
+
+              for (var i=0; i< $scope.contrib_tests.length; i++){
+                $scope.contrib_tests[i][0] =="";
+                $scope.contrib_tests[i][1] =="";
+                $scope.contrib_tests[i][2] =="";
+              }
+
+              $scope.check_field = "";
+              $scope.tests_m = true;
+
+              for (var i=0;i<$scope.contrib_tests.length;i++){
+                $scope.contrib_tests[i][0] = "";
+                $scope.contrib_tests[i][1] = "";
+                $scope.contrib_tests[i][2] = "";
+              }
+
+              $scope.success_setup = "";
+              $scope.check_field = "";
+            }).
+            error(function(data, status, headers, config) {
+              // called asynchronously if an error occurs
+              // or server returns response with an error status.
+            });
+        return null;
+      };
+
+      $scope.getProblem = function(){
+      
+      var form_data = {};
+      form_data.mode = "contributor_tid";
+      form_data.uid = $scope.uid;
+
+      $http.post('', form_data).
+            success(function(data, status, headers, config) {
+              console.log("\ntid callback\n");
+              console.log("data :" + JSON.stringify(data));
+              console.log("status: " + status);
+              console.log("headers: " + headers);
+              console.log("config: " + config);
+              if (data == "-1"){
+                $scope.sorry_m = true;
+              } else {
+                $scope.problem_id = data.problem_id;
+                console.log("problem_id: " + $scope.problem_id);
+                $scope.check_field = data.ps;
+
+                challenges = [];
+                challenges.push([data.tests[0].a10, data.tests[0].a11, data.tests[0].a12]);
+                challenges.push([data.tests[1].a20, data.tests[1].a21, data.tests[1].a22]);
+                challenges.push([data.tests[2].a30, data.tests[2].a31, data.tests[2].a32]);
+                
+                for (var i=0; i<challenges.length; i++){
+                  $scope.contrib_challenges[i][0] = challenges[i][0];
+                  $scope.contrib_challenges[i][1] = challenges[i][1];
+                }
+              }
+            }).
+            error(function(data, status, headers, config) {
+              // called asynchronously if an error occurs
+              // or server returns response with an error status.
+            });
+        return null;
+      }
+
+      $scope.addTestCase = function(){
+        $scope.contrib_tests.push(["","",""]);
+      };
+
+      $scope.removeTestCase = function(){
+        $scope.contrib_tests.pop();
+      };
+
+      $scope.closeSuccess = function(){
+        $scope.success_m = false;
+      };
+
+      $scope.closeSorry = function(){
+        $scope.sorry_m = false;
+      };
+
+      $scope.closeChallenges = function(){
+        $scope.challenges_m = false;
+      };
+
+      $scope.closeTests = function(){
+        $scope.tests_m = false;
+      };
+
+      $scope.switchResults = function(){
+        $scope.contrib_final = !$scope.contrib_final;
+      };
+
+    }
+
+    demoApp.controller('MainController',MainController);
+  </script>
+  <style>
+            .my-drop-zone { border: dotted 3px lightgray; text-align:center;}
+            .nv-file-over { border: dotted 3px red; text-align:center;} /* Default class applied to drop zones on over */
+            .another-file-over-class { border: dotted 3px green; }
+            
+            .formfield * {
+                vertical-align: middle;
+            }
+  </style>
+</head>
+<body  style="background-color: #F4EFE3;" ng-app="demoApp" ng-controller="MainController" uploader="uploader" nv-file-drop="">
+
+  <div class="navbar navbar-inverse navbar-fixed-top" position="static" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#"><font color = "red">testIt</font></a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav navbar-right">
+        
+           <!-- <li><a href="">Home</a></li> -->  
+
+            <li ><a ng-click="setPage('profile')">Profile</a></li>
+            <li><a ng-click="setPage('submission')">Submission Page</a></li>
+            <li><a ng-click="getProblem(); setPage('contribution')">Challenge</a></li>
+            <li><a ng-click="setPage('developers')">Developers</a></li>
+          
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+  <br><br />
+<br />
+
+
+<!-- Login Page ends -->
+
+<!-- Modal Dialogs-->
+<div class="row text-center">
+<modal-dialog show='incomplete' dialog-title='Error with Problem'>
+{{incomplete_message}}
+</modal-dialog>
+</div>
+
+<div class="row text-center">
+<modal-dialog show='success_m' dialog-title='Problem Uploaded!' on-close="setPage('profile'); closeSuccess();setProfile();">
+  <div class="row text-center">
+    Your problem has been uploaded to our servers! 
+  </div>
+</modal-dialog>
+</div>
+
+<div class="row text-center">
+<modal-dialog show='failure_m' dialog-title='Error with Submission'>
+{{success_message}}
+</modal-dialog>
+</div>
+
+<div class="row text-center">
+<modal-dialog show='challenges_m' dialog-title='You Passed!' on-close="setPage('success'); closeChallenges()">
+  Congratulations! Now you get to write your own test cases!
+</modal-dialog>
+</div>
+
+<div class="row text-center">
+<modal-dialog show='tests_m' dialog-title='Tests Submitted!' on-close="setProfile();setPage('contrib_results'); closeTests()">
+  Way to go! Close this window to see the results of your tests.
+</modal-dialog>
+</div>
+
+<div class="row text-center">
+<div class="row text-center">
+<modal-dialog show='sorry_m' dialog-title='No Problems Found' on-close="setPage('profile'); closeSorry()">
+ No problems are available at this time. Come back later to check out cool problems!
+</modal-dialog>
+</div>
+
+<!-- Developers starting -->
+
+<div class="container" ng-if="current_page=='developers'">
+  <br><br><br><br><br><br>
+ <!-- <div ng-if="isAuthenticated() && currentUser.username"> -->
+    <div class="container marketing" align="center">
+
+     <div class = "row">
+        <div class="col-sm-3">
+          <img class="img-circle" src="images/sharang.jpg" alt= "Generic placeholder image" style="width: 140px; height: 140px;">
+          <h2>Sharang</h2>
+          <p>  SCS 2017 <br> Carnegie Mellon University
+          </p>
+          <p>
+            <a class="btn btn-default" href="#" role="button"> More about me </a>
+          </p>  
+        </div>
+      
+        <div class="col-sm-3">
+          <img class="img-circle" src="images/narain.jpg" alt= "Generic placeholder image" style="width: 140px; height: 140px;">
+          <h2>Narain</h2>
+          <p>  MCS 2017 <br> Carnegie Mellon University
+          </p>
+          <p>
+            <a class="btn btn-default" href="#" role="button"> More about me </a>
+          </p>  
+        </div>
+        
+        <div class="col-sm-3">
+          <img class="img-circle" src="images/sohil.jpg" alt= "Generic placeholder image" style="width: 140px; height: 140px;">
+          <h2>Sohil</h2>
+          <p>  ECE 2016 <br> Carnegie Mellon University
+          </p>
+          <p>
+            <a class="btn btn-default" href="#" role="button"> More about me </a>
+          </p>  
+        </div>
+       
+        <div class="col-sm-3">
+          <img class="img-circle" src="images/ashwin.jpg" alt= "Generic placeholder image" style="width: 140px; height: 140px;">
+          <h2>Ashwin</h2>
+          <p>  ECE 2017 <br> Carnegie Mellon University
+          </p>
+          <p>
+            <a class="btn btn-default" href="#" role="button"> More about me </a>
+          </p>  
+        </div>
+
+       </div>
+
+     </div>
+</div>
+
+<!-- Developers Ending -->
+
+<!--Problem Submission Starting -->
+<div style="background-color:white; width: 855px;" class="container" ng-if="current_page == 'submission'">
+      <div class="row text-center">
+        <h2 for="prbsub">Problem Submission</h2>
+      </div>
+      <div class="row">
+        <form role="form">
+              <div class="form-group text-center">
+                  <textarea ng-model="$parent.prbsub" rows="13" cols="100" style="resize:none;">
+                    Type problem here ....
+                  </textarea>
+                  <br />
+                  <br />
+                  <!-- test1 starting -->
+                  <div class="row formfield">
+                    <label for="sub1">Test 1: </label>
+                    <textarea id="sub1" ng-model="$parent.assert_10" rows="1" cols="38" style="resize:none;">
+                      test 1 here ..
+                    </textarea>  
+                    <textarea ng-model="$parent.assert_11" rows="1" cols="10" style="resize:none;">
+                      equal
+                    </textarea>
+                    <textarea ng-model="$parent.assert_12" rows="1" cols="38" style="resize:none;">
+                      test 1 here ..
+                    </textarea>
+                  </div>
+                  <!-- test1 ending -->
+
+                  <!-- test 2 starting -->
+                  <div class="row formfield">
+                    <label for="sub2">Test 2: </label>
+                    <textarea id="sub2" ng-model="$parent.assert_20" rows="1" cols="38" style="resize:none;">
+                      test 2 here ..
+                    </textarea>  
+                    <textarea ng-model="$parent.assert_21" rows="1" cols="10" style="resize:none;">
+                      equal
+                    </textarea>
+                    <textarea ng-model="$parent.assert_22" rows="1" cols="38" style="resize:none;">
+                      test 2 here ..
+                    </textarea>
+                  </div>
+                  <!-- test 2 ending -->
+
+                  <!-- test 3 starting -->
+                  <div class="row formfield">
+                    <label for="sub3">Test 3: </label>
+                    <textarea id = "sub3" ng-model="$parent.assert_30" rows="1" cols="38" style="resize:none;">
+                      test 3 here ..
+                    </textarea>  
+                    <textarea ng-model="$parent.assert_31" rows="1" cols="10" style="resize:none;">
+                      equal
+                    </textarea>
+                    <textarea ng-model="$parent.assert_32" rows="1" cols="38" style="resize:none;">
+                      test 3 here ..
+                    </textarea>
+                  </div>
+                  <!-- test 3 ending -->
+                  <div class="row text-center">
+                        
+                        <div ng-repeat="item in uploader.queue">
+                            <br /> <span ng-bind="item.file.name"></span>
+                        </div>
+                  </div> 
+
+                  <br />
+                  <div class="row">
+                      <div class="col-md-4 col-md-offset-4">
+                        <div class="well my-drop-zone"  nv-file-over="" uploader="uploader">
+                           {{drop_text}}
+                        </div>
+                      </div>
+                  </div>
+                  
+
+                  <div class="row">
+                    <button class="btn btn-success" ng-click="uploadFiles()"> Upload </button>
+                  </div>
+                  
+              </div>
+        </form>
+        <!-- Form ends here -->
+      </div>
+      <!-- Outermost row ends here -->
+
+    </div>
+
+<!-- Problem Submission Ending -->
+
+<!--Contribution page Starting -->
+
+<div style="background-color:white; width: 855px;" class="container" ng-if="current_page == 'contribution'">
+      <div class="row text-center">
+        <h2 for="prbsub">Challenge</h2>
+      </div>
+      <div class="row">
+        <form role="form">
+              <div class="form-group text-center">
+                   <textarea ng-model="$parent.check_field" disabled rows="13" cols="100" style="resize:none;">
+                      
+                  </textarea>  
+                  <br />
+                  <div class="row" >
+                   <p> These are unfinished test cases based on the problem above. Solve all three to contribute your own tests! </p>
+                  </div>
+                  <br />
+                  <div class="row formfield" for="{{$parent.contrib_challenges.indexOf(t)}}" ng-repeat = "t in $parent.contrib_challenges">
+                    <label>Check {{$parent.contrib_challenges.indexOf(t) + 1}}: </label>
+                    <textarea ng-model="t[0]" id="{{$parent.contrib_challenges.indexOf(t)}}" disabled rows="1" cols="38" style="resize:none;">
+                      
+                    </textarea>  
+                    <textarea ng-model="t[1]" disabled rows="1" cols="10" style="resize:none;">
+                      
+                    </textarea>
+                    <textarea ng-model="t[2]" rows="1" cols="38" style="resize:none;">
+                      
+                    </textarea>
+                  </div>
+                  <br />
+               
+                  <div class="row">
+                    <button class="btn btn-success" ng-click="checkChallenges()"> Submit </button>
+                  </div>
+              </div>
+        </form>
+        <!-- Form ends here -->
+      </div>
+      <!-- Outermost row ends here -->
+
+    </div>
+<!-- Contribution Page ends -->
+
+    <!-- Success Page starts -->
+
+<div style="background-color:white;"class="container" ng-if="current_page == 'success'">
+      <div class="row text-center">
+        <h2 for="prbsub">Write Your Cases</h2>
+      </div>
+      <div class="row">
+        <form role="form">
+              <div class="form-group text-center">
+                
+                  <textarea ng-model="$parent.check_field" disabled rows="8" cols="100" style="resize:none;">
+                      
+                  </textarea>  
+                  <br /><br/>
+
+                  <textarea ng-model="$parent.success_setup" rows="8" cols="100" style="resize:none;">
+                      
+                  </textarea>  
+                  <br>
+                  <br>
+
+                    <div class="row formfield " for="{{$parent.contrib_tests.indexOf(t)}}" ng-repeat = "t in $parent.contrib_tests">
+                      <label>Test {{$parent.contrib_tests.indexOf(t) + 1}}: </label>
+                      <textarea ng-model="t[0]" id="{{$parent.contrib_tests.indexOf(t)}}" rows="1" cols="38" style="resize:none;">
+                        thingy
+                      </textarea>  
+                      <textarea ng-model="t[1]" rows="1" cols="10" style="resize:none;">
+                        
+                      </textarea>
+                      <textarea ng-model="t[2]" rows="1" cols="38" style="resize:none;">
+                        
+                      </textarea>
+                    </div>
+
+                  <!-- Add Tests button -->
+                  <div class="row">
+                    <div class="col-md-2 col-md-offset-3">
+                      <a href="">
+                          <span class="glyphicon glyphicon-plus" ng-click="addTestCase()">
+                            Add Case
+                          </span>
+                      </a>
+                      <a href="">
+                          <span class="glyphicon glyphicon-minus" ng-click="removeTestCase()">
+                            Remove Case
+                          </span>
+                      </a>
+                    </div>
+                  </div>
+                  <!-- Add Tests ending-->
+      
+                  <br />
+                  <div class="row">
+                    <button class="btn btn-success" ng-click="submitContributorTests()"> Submit </button>
+                  </div>
+              </div>
+        </form>
+        <!-- Form ends here -->
+      </div>
+      <!-- Outermost row ends here -->
+
+    </div>
+
+    <!-- Success Page ends -->
+
+<div class="container" ng-if="(current_page == 'profile')">
+   <div class="account-wall">
+    <h2> User Profile </h2>
+    <div class="row text-left">
+          <div class="col-md-6">
+          <div class="modal-body" style="text-align:center;">
+         
+          <div class="row-fluid">
+          
+          <div class="tab-content">
+          
+          <img src="images/narain.jpg" name="aboutme" width="140" height="140" border="0" class="img-circle">
+          <br>
+          <br>
+            <h3 class="media-heading">{{user_info.name}} <small> USA</small></h3>
+            <br>
+                      <h4><strong>My Skills </strong></h4>
+                      
+                      <span class="label label-warning">Angular.JS</span>
+                      <span class="label label-warning">Node.JS</span>
+                      <span class="label label-info">HTML5/CSS</span>
+                      <span class="label label-info">SQL</span>
+                      <span class="label label-success">SML</span>
+                      <span class="label label-success">Java</span>
+                      <span class="label label-success">Python</span>
+
+         
+            <br>
+            <h5><strong>About</strong></h5>
+          <p class="text-center">
+          Math and Computer Science major at Carnegie Mellon University.</p>
+            <br>
+          
+          </div>
+          </div>
+      </div>
+      </div>
+      <div class="col-md-6">
+         <br/> <br/> <br/>
+        <table st-table="user_data" st-safe-src="user_data" class="table table-striped" >
+          <thead>
+          <tr>
+            <th>Test</th>
+            <th>Uploaded On</th>
+            <th>Expires On</th>
+            <th>Case Submitted<th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="row in user_data">
+            <td>{{row.id}}</td>
+            <td>{{row.up}}</td>
+            <td>{{row.exp}}</td>
+            <td>{{row.sub}}</td>
+          </tr>
+          </tbody>
+        </table>
+
+      </div>
+
+</div>
+</div>
+</div>
+
+
+
+    <!-- Profile Page Starts -->
+
+<div class="container" ng-if="current_page == 'contrib_results'">
+   <div class="account-wall">
+    <h2> Test Case Results </h2>
+    <div class="row text-left">
+          <div class="col-md-6">
+          <div class="modal-body" style="text-align:center;">
+         
+          <div class="row-fluid">
+          
+          <div class="tab-content">
+          
+          <img src="images/narain.jpg" name="aboutme" width="140" height="140" border="0" class="img-circle">
+          <br>
+          <br>
+            <h3 class="media-heading">{{user_info.name}}<small> USA</small></h3>
+            <br>
+                      <h4><strong>My Skills </strong></h4>
+                      <br>
+                      <span class="label label-warning">HTML5/CSS</span>
+                      <span class="label label-info">Adobe CS 5.5</span>
+                      <span class="label label-info">Microsoft Office</span>
+                      <span class="label label-success">Windows XP, Vista, 7</span>
+
+         
+            <br>
+            <h5><strong>About</strong></h5>
+          <p class="text-center">
+          I am a Computer Science Major.</p>
+            <br>
+          
+          </div>
+          </div>
+      </div>
+      </div>
+      <div class="col-md-6">
+         <br/> <br/> <br/>
+        
+        <table st-table="test_data" st-safe-src="test_data" class="table table-striped" >
+          <thead>
+          <tr>
+            <th st-sort="result">Function</th>
+            <th st-sort="result" st-sort-default="reverse">Result</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="row in test_data">
+            <td>{{row.func}}</td>
+            <td>{{row.result}}</td>
+          </tr>
+          </tbody>
+        </table> 
+
+      </div>
+
+</div>
+</div>
+</div>
+
+<br /><br /><br /><br />
+<div ng-init="initialize()">
+    <div align="center" class="fb-login-button" data-max-rows="1" data-size="xlarge" data-show-faces="false" data-auto-logout-link="true">
+    </div>
+</div> 
+<br /><br /><br /><br />
+    <!-- Profile Page ends -->
+
+
+
+</body>
+</html>
