@@ -23,7 +23,7 @@ python back/server.py
 
 from the chessmate directory. Also, this command will only work with Python2 and not with Python3.
 
-2) Now, once the server is running on the terminal, go to the browser and go to the following url - 
+2) Now, once the server is running on the terminal, go to the browser and go to the following url 
 
 localhost:9001
 
@@ -39,5 +39,4 @@ The puzzles will go into the puzzles folder under front.
 
 **Progress so far** 
 
-I have made a server and put very basic template of the initial webpage. 
-
+I have made a server and put very basic template of the initial webpage.
