@@ -17,7 +17,7 @@ Chessmate
 
 ### Instructions to run server from terminal ###
 
-1) Now, to run the python server, you need to type the following-
+1)  To run the python server, go to the chessmate directory and type the following command-
 
 python back/server.py
 
