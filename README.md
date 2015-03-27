@@ -40,4 +40,4 @@ The puzzles will go into the puzzles folder under front.
 
 ### Progress so far ###
 
-I have made a server and put very basic template of the initial webpage.
+I have made a server and put a very basic template of the initial webpage.
