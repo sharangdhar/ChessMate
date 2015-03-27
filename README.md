@@ -1,9 +1,3 @@
-
-```
-#!python
-
-
-```
 # README #
 
 ## Directory Structure ##
