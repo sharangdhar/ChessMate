@@ -1,6 +1,6 @@
 # README #
 
-**This is the directory structure ** 
+## Directory Structure ##
 
 Chessmate
 	- back
@@ -15,7 +15,7 @@ Chessmate
 		-index.html
 
 
-**Instructions to run server from terminal**
+### Instructions to run server from terminal ###
 
 1) Now, to run the python server, you need to type the following-
 
@@ -32,11 +32,12 @@ This will display the website.
 3) To shut the server, press ‘ctrl c’ in the terminal.
 
 
-**PUZZLES**
+
+### PUZZLES ###
 
 The puzzles will go into the puzzles folder under front.
 
 
-**Progress so far** 
+### Progress so far ### 
 
 I have made a server and put very basic template of the initial webpage.
