@@ -1,20 +1,5 @@
 # README #
 
-## Directory Structure ##
-
-Chessmate
-	- back
-		- server.py
-	-front
-		-controllers
-		-fonts
-		-puzzles
-		-css
-		-images
-		-js
-		-index.html
-
-
 ### Instructions to run server from terminal ###
 
 1)  To run the python server, go to the chessmate directory and type the following command-
