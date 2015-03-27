@@ -38,6 +38,6 @@ This will display the website.
 The puzzles will go into the puzzles folder under front.
 
 
-### Progress so far ### 
+### Progress so far ###
 
 I have made a server and put very basic template of the initial webpage.
