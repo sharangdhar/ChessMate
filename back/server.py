@@ -29,6 +29,8 @@ class handler (BaseHTTPRequestHandler):
                 mime='application/javascript'
             if self.path.endswith(".jpg"):
                 mime='image/jpg'
+            if self.path.endswith(".jpeg"):
+                mime='image/jpg'
             if self.path.endswith(".gif"):
                 mime='image/gif'
             if self.path.endswith(".png"):
