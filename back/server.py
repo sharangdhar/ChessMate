@@ -35,6 +35,16 @@ class handler (BaseHTTPRequestHandler):
                 mime='image/png'
             if self.path.endswith(".css"):
                 mime='text/css'
+            if self.path.endswith(".eot"):
+                mime='font/opentype'
+            if self.path.endswith(".svg"):
+                mime='font/opentype'
+            if self.path.endswith(".ttf"):
+                mime='font/opentype'  
+            if self.path.endswith(".woff"):
+                mime='font/opentype'                                                                                    
+
+
 
             if mime:
                 file = open(curdir + sep + self.path) 
