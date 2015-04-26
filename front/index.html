@@ -135,12 +135,18 @@
 			<input class="col-sm-push-1" type="button" id="clearBtn" value="Clear" />
 		
 			<script>
-			var board2 = new ChessBoard('board2', {
-			  draggable: true,
-			  dropOffBoard: 'trash',
-			  sparePieces: true
-			});
-			$('#startBtn').on('click', board2.start);
+                        var cfg = {
+                          draggable: true,
+                          position: '8/8/R7/8/k1K5/8/8/8'
+                        };
+			var board2 = new ChessBoard('board2', cfg);
+			$('#startBtn').on('click', function() {
+                          board2.position({
+                            a4: 'bK',
+                            c4: 'wK',
+                            a6: 'wR'
+                          });
+                        });
 			$('#clearBtn').on('click', board2.clear);
 
 			</script>
