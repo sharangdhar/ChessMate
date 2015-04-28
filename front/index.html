@@ -28,6 +28,7 @@
 	<script src="js/script.js"></script>
 	<script src="js/chessboard-0.3.0.min.js"></script>
 	<script src="js/chessboard-0.3.0.js"></script>
+        <script src="puzzles/puzzle1.js"></script>
 	
 	<!-- fancybox init -->
 	<script>
@@ -133,6 +134,7 @@
 			<br>
 			<input type="button" id="startBtn" value="Start" />
 			<input class="col-sm-push-1" type="button" id="clearBtn" value="Clear" />
+                        <input class="col-sm-push-1" type="button" id="nextBtn" value = "Next" />
 		
 			<script>
                         var cfg = {
@@ -147,7 +149,8 @@
                             a6: 'wR'
                           });
                         });
-			$('#clearBtn').on('click', board2.clear);
+                        $('#clearBtn').on('click',board2.clear);
+			$('#nextBtn').on('click', function() {nextPuzzle();});
 			</script>
 	
 
