@@ -164,17 +164,19 @@ Move your bishop to the long diagonal for checkmate!</h4>
 			 <div class="col-12 col-sm-push-4" id="board2" style="width: 400px"></div>
 			</div>
 			<br>
-			<input type="button" id="startBtn" value="Start" />
+			<input class="col-sm-push-1" type="button" id="startBtn" value="Start" />
 			<input class="col-sm-push-1" type="button" id="clearBtn" value="Clear" />
                         <input class="col-sm-push-1" type="button" id="nextBtn" value = "Next" />
 		
 			<script>
+                        var counter = 0;
                         var cfg = {
                           draggable: true,
                           position: '8/8/R7/8/k1K5/8/8/8'
                         };
 			var board2 = new ChessBoard('board2', cfg);
 			$('#startBtn').on('click', function() {
+                          counter = 0;
                           board2.position({
                             a4: 'bK',
                             c4: 'wK',
