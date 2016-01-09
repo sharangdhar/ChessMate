@@ -16,4 +16,5 @@ This will display the website.
 
 3) To shut the server, press ‘ctrl c’ in the terminal.
 
-# Contributors - Ryan Archer, Jay Achuff, Archit Sahay, Sharangdhar Chakaborty
+# Contributors 
+Ryan Archer, Jay Achuff, Archit Sahay, Sharangdhar Chakaborty
