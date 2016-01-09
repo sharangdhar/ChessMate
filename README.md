@@ -16,13 +16,4 @@ This will display the website.
 
 3) To shut the server, press ‘ctrl c’ in the terminal.
 
-
-
-### PUZZLES ###
-
-The puzzles will go into the puzzles folder under front.
-
-
-### Progress so far ###
-
-I have made a server and put a very basic template of the initial webpage.
+# Contributors - Ryan Archer, Jay Achuff, Archit Sahay, Sharangdhar Chakaborty
