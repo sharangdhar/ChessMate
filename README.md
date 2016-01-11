@@ -5,7 +5,7 @@
 
 ChessMate is a chess puzzle application seeking to aid casual chess players. Although many chess manuals exist, having to learn the game from books can often be a cumbersome task. By grouping puzzles together and allowing them to be presented in an interactive setting, this application serves to directly teach chess strategy. ChessMate will allow users to select from various puzzles groups, such as begin games and end games. Our project will mainly focus on chess end games by teaching players moves for completing a game. In doing so, our goal is to help players apply these patterns when finishing games of chess. As students who all love the game of chess, our hope is to solve the problems with existing implementations and help users learn better strategy. 
 
-# Contributors 
+### Contributors 
 Ryan Archer, Jay Achuff, Archit Sahay, Sharangdhar Chakaborty
 
 ### Instructions to run server from terminal ###
